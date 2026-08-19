@@ -1,0 +1,240 @@
+@import "tailwindcss";
+
+/* ---- Type system ---- */
+@import "@fontsource/ibm-plex-sans/latin-400.css";
+@import "@fontsource/ibm-plex-sans/latin-500.css";
+@import "@fontsource/ibm-plex-sans/latin-600.css";
+@import "@fontsource/ibm-plex-sans/latin-700.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-400.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-500.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-600.css";
+@import "@fontsource/ibm-plex-sans/latin-ext-700.css";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/ibm-plex-mono/latin-500.css";
+@import "@fontsource/ibm-plex-mono/latin-600.css";
+@import "@fontsource/ibm-plex-mono/latin-ext-400.css";
+@import "@fontsource/ibm-plex-mono/latin-ext-500.css";
+@import "@fontsource/ibm-plex-mono/latin-ext-600.css";
+@import "@fontsource/space-grotesk/latin-500.css";
+@import "@fontsource/space-grotesk/latin-600.css";
+@import "@fontsource/space-grotesk/latin-700.css";
+
+/* Class-based dark mode toggle (Tailwind v4) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =====================================================
+   PUBLIC PORTFOLIO TOKENS (light, warm cream)
+   ===================================================== */
+:root {
+  /* Public palette */
+  --pub-bg: #efede6;
+  --pub-surface: #ffffff;
+  --pub-ink: #171a20;
+  --pub-muted: #5b6472;
+  --pub-border: #d4d1ca;
+  --pub-accent: #2a8c82;
+  --pub-accent-soft: #e8f4f3;
+
+  /* Legacy aliases (keep for existing components) */
+  --paper: #efede6;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --ink: #171a20;
+  --muted: #5b6472;
+  --line: #d4d1ca;
+  --line-strong: #b8b4ac;
+  --indigo: #2a8c82;
+  --indigo-soft: #e8f4f3;
+  --amber: #b8763a;
+  --amber-soft: #f4ece0;
+
+  /* Dashboard palette (Saas Premium Dark Theme) */
+  --dash-bg: #0F1018;
+  --dash-sidebar: #171824;
+  --dash-surface: #1B1B28;
+  --dash-surface-raised: #20202E;
+  --dash-ink: #F4F4F7;
+  --dash-muted: #9A9AA8;
+  --dash-border: #2A2A3A;
+  --dash-border-strong: #3E3E52;
+  --dash-accent: #4F7CFF;
+  --dash-accent-purple: #9B4DFF;
+  --dash-accent-soft: rgba(79, 124, 255, 0.15);
+  --dash-warning: #FFC43D;
+  --dash-warning-soft: rgba(255, 196, 61, 0.15);
+  --dash-danger: #FF5C6C;
+  --dash-success: #48C774;
+}
+
+
+/* Dashboard dark mode — applies when .dashboard class is on a container */
+.dashboard {
+  --paper: var(--dash-bg);
+  --surface: var(--dash-surface);
+  --surface-raised: var(--dash-surface-raised);
+  --ink: var(--dash-ink);
+  --muted: var(--dash-muted);
+  --line: var(--dash-border);
+  --line-strong: var(--dash-border-strong);
+  --indigo: var(--dash-accent);
+  --indigo-soft: var(--dash-accent-soft);
+  --amber: var(--dash-warning);
+  --amber-soft: var(--dash-warning-soft);
+}
+
+@theme inline {
+  /* Fonts */
+  --font-display: "Fraunces", "Space Grotesk", ui-serif, Georgia, serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Design tokens mapped to Tailwind */
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-indigo: var(--indigo);
+  --color-indigo-soft: var(--indigo-soft);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+
+  /* Dashboard specific */
+  --color-dash-bg: var(--dash-bg);
+  --color-dash-surface: var(--dash-surface);
+  --color-dash-surface-raised: var(--dash-surface-raised);
+  --color-dash-ink: var(--dash-ink);
+  --color-dash-muted: var(--dash-muted);
+  --color-dash-border: var(--dash-border);
+  --color-dash-border-strong: var(--dash-border-strong);
+  --color-dash-accent: var(--dash-accent);
+  --color-dash-accent-soft: var(--dash-accent-soft);
+  --color-dash-warning: var(--dash-warning);
+  --color-dash-warning-soft: var(--dash-warning-soft);
+  --color-dash-danger: var(--dash-danger);
+  --color-dash-success: var(--dash-success);
+
+  /* Animations */
+  --animate-draw: draw 1.6s ease-out forwards;
+  --animate-pulse-dot: pulse-dot 2.4s ease-in-out infinite;
+  --animate-marquee: marquee 32s linear infinite;
+  --animate-fade-in: fade-in 0.3s ease-out forwards;
+  --animate-slide-in-left: slide-in-left 0.25s ease-out forwards;
+  --animate-slide-in-right: slide-in-right 0.25s ease-out forwards;
+  --animate-slide-in-up: slide-in-up 0.2s ease-out forwards;
+}
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background-color: var(--color-indigo);
+    color: white;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-indigo);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-line-strong);
+    border-radius: 999px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .signal-path {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: var(--animate-draw);
+  }
+  .text-balance { text-wrap: balance; }
+  .font-display { font-family: var(--font-display); }
+  .font-sans { font-family: var(--font-sans); }
+  .font-body { font-family: var(--font-body); }
+  .font-mono { font-family: var(--font-mono); }
+
+  /* Dashboard scrollbar */
+  .dash-scroll::-webkit-scrollbar { width: 4px; }
+  .dash-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--dash-border-strong);
+    border-radius: 999px;
+  }
+
+  /* Thin border utility for dashboard cards */
+  .border-dash { border-color: var(--dash-border); }
+  .border-dash-strong { border-color: var(--dash-border-strong); }
+}
+
+/* Print styles */
+@media print {
+  header, footer, .no-print { display: none !important; }
+  :root, .dark {
+    --paper: #ffffff;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --ink: #0a0a0a;
+    --muted: #444444;
+    --line: #d8d8d8;
+    --line-strong: #b8b8b8;
+  }
+  body { background: white !important; }
+  .print-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+}

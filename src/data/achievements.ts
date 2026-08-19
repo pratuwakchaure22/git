@@ -1,0 +1,65 @@
+import type { Achievement } from "@/types";
+
+export const achievements: Achievement[] = [
+  {
+    id: "a1",
+    title: "Best Technical Implementation",
+    issuer: "Global Hack Week",
+    date: "2025",
+    category: "competition",
+    description:
+      "Won out of 400+ teams for a real-time collaborative debugging tool built in 36 hours, judged on technical depth and execution polish.",
+    credentialUrl: "#",
+  },
+  {
+    id: "a2",
+    title: "AWS Certified Solutions Architect – Professional",
+    issuer: "Amazon Web Services",
+    date: "2024",
+    category: "certification",
+    description: "Advanced certification covering distributed system design, cost optimization, and migration strategy at scale.",
+    credentialUrl: "#",
+  },
+  {
+    id: "a3",
+    title: "Open Source Contributor Recognition",
+    issuer: "PyData Foundation",
+    date: "2024",
+    category: "recognition",
+    description: "Recognized among the top 20 external contributors for sustained maintenance work on evaluation tooling used across the ecosystem.",
+    credentialUrl: "#",
+  },
+  {
+    id: "a4",
+    title: "1st Place, University Systems Design Competition",
+    issuer: "Dept. of Computer Science",
+    date: "2021",
+    category: "competition",
+    description: "Designed and defended a fault-tolerant distributed key-value store against a panel of faculty judges, out of 30 competing teams.",
+  },
+  {
+    id: "a5",
+    title: "Dean's List — 6 consecutive semesters",
+    issuer: "University Honors Program",
+    date: "2018 – 2021",
+    category: "recognition",
+    description: "Awarded each semester for maintaining a GPA in the top 5% of the graduating class.",
+  },
+  {
+    id: "a6",
+    title: "Google Cloud Professional ML Engineer",
+    issuer: "Google Cloud",
+    date: "2023",
+    category: "certification",
+    description: "Certification covering ML pipeline design, model deployment, and production monitoring on GCP.",
+    credentialUrl: "#",
+  },
+  {
+    id: "a7",
+    title: "Merit Scholarship for Academic Excellence",
+    issuer: "University Honors Program",
+    date: "2017",
+    category: "award",
+    description: "Full-tuition merit scholarship awarded to incoming students based on academic record and a research proposal.",
+  },
+];
