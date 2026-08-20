@@ -297,3 +297,40 @@ export interface AdminItem {
   published: boolean;
   lastUpdated: string;
 }
+
+// ============================================================
+// Notifications
+// ============================================================
+
+export type NotificationType =
+  | "deadline_overdue"
+  | "deadline_today"
+  | "deadline_tomorrow"
+  | "reminder_due"
+  | "reminder_approaching"
+  | "reminder_missed"
+  | "task_overdue"
+  | "task_due_today"
+  | "task_due_soon"
+  | "task_completed";
+
+export type NotificationEntityType = "deadline" | "reminder" | "task";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  is_read: boolean;
+  entity_id?: string;
+  entity_type?: NotificationEntityType;
+  created_at: string;
+}
+
+export interface NotificationPreferences {
+  in_app: boolean;
+  browser_push: boolean;
+  deadline_alerts: boolean;
+  reminder_alerts: boolean;
+  task_alerts: boolean;
+}
