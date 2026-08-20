@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plus, Bell, Clock, Repeat, CheckCircle, Trash2 } from "lucide-react";
+import { Plus, Bell, Clock, Repeat, CheckCircle, Trash2, Edit3 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { ReminderModal } from "@/components/modals/ReminderModal";
 import type { Reminder } from "@/types";
 
 const repeatLabels: Record<string, string> = {
@@ -21,6 +22,9 @@ export default function Reminders() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reminderToEdit, setReminderToEdit] = useState<Reminder | null>(null);
 
   useEffect(() => {
     if (user) fetchReminders();
@@ -82,6 +86,16 @@ export default function Reminders() {
     if (error) { console.error(error); fetchReminders(); }
   }
 
+  function handleOpenCreate() {
+    setReminderToEdit(null);
+    setIsModalOpen(true);
+  }
+
+  function handleOpenEdit(reminder: Reminder) {
+    setReminderToEdit(reminder);
+    setIsModalOpen(true);
+  }
+
   const todayReminders = reminders.filter((r) => r.status === "today");
   const upcomingReminders = reminders.filter((r) => r.status === "upcoming");
   const completedReminders = reminders.filter((r) => r.status === "completed");
@@ -105,9 +119,9 @@ export default function Reminders() {
         actions={
           <button
             type="button"
-            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 cursor-pointer"
             style={{ backgroundColor: "#2a8c82" }}
-            onClick={() => alert("Create reminder modal not implemented")}
+            onClick={handleOpenCreate}
           >
             <Plus className="h-4 w-4" />
             New Reminder
@@ -167,10 +181,19 @@ export default function Reminders() {
 
               {/* Actions */}
               <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  type="button"
+                  className="rounded p-1.5 transition-colors hover:opacity-80 cursor-pointer"
+                  style={{ color: "#8f97a5" }}
+                  onClick={() => handleOpenEdit(r)}
+                  title="Edit reminder"
+                >
+                  <Edit3 className="h-3.5 w-3.5" />
+                </button>
                 {r.status !== "completed" && (
                   <button
                     type="button"
-                    className="rounded p-1.5 transition-colors hover:opacity-80"
+                    className="rounded p-1.5 transition-colors hover:opacity-80 cursor-pointer"
                     style={{ color: "#2a8c82" }}
                     onClick={() => completeReminder(r.id)}
                     title="Mark complete"
@@ -180,10 +203,10 @@ export default function Reminders() {
                 )}
                 <button
                   type="button"
-                  className="rounded p-1.5 transition-colors hover:opacity-80"
+                  className="rounded p-1.5 transition-colors hover:opacity-80 cursor-pointer"
                   style={{ color: "#c0392b" }}
                   onClick={() => deleteReminder(r.id)}
-                  title="Delete"
+                  title="Delete reminder"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -192,6 +215,13 @@ export default function Reminders() {
           ))}
         </div>
       )}
+
+      <ReminderModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchReminders}
+        reminderToEdit={reminderToEdit}
+      />
     </div>
   );
 }

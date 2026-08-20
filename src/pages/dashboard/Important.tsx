@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Plus, Star, Link as LinkIcon, Calendar, Phone, Info, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Star, Link as LinkIcon, Calendar, Phone, Info, Trash2, ExternalLink, Edit3 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { ImportantModal } from "@/components/modals/ImportantModal";
 import type { ImportantItem, ImportantCategory } from "@/types";
 
 const sections: { category: ImportantCategory; label: string; icon: React.ReactNode }[] = [
@@ -28,6 +29,9 @@ export default function Important() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState<ImportantItem | null>(null);
+
   useEffect(() => {
     if (user) fetchItems();
   }, [user]);
@@ -35,8 +39,6 @@ export default function Important() {
   async function fetchItems() {
     setIsLoading(true);
     setError("");
-    // Use notes table with is_important=true as proxy since we don't have a dedicated important_items table yet.
-    // If you add a separate table, update this query.
     const { data, error } = await supabase
       .from("notes")
       .select("*")
@@ -69,6 +71,16 @@ export default function Important() {
     if (error) { console.error(error); fetchItems(); }
   }
 
+  function handleOpenCreate() {
+    setItemToEdit(null);
+    setIsModalOpen(true);
+  }
+
+  function handleOpenEdit(item: ImportantItem) {
+    setItemToEdit(item);
+    setIsModalOpen(true);
+  }
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-4xl space-y-6">
@@ -88,9 +100,9 @@ export default function Important() {
         actions={
           <button
             type="button"
-            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 cursor-pointer"
             style={{ backgroundColor: "#2a8c82" }}
-            onClick={() => alert("Create important item modal not implemented")}
+            onClick={handleOpenCreate}
           >
             <Plus className="h-4 w-4" />
             Add Item
@@ -104,7 +116,7 @@ export default function Important() {
         <EmptyState
           icon={<Star className="h-5 w-5" />}
           title="No important items"
-          description="Mark notes as important to see them here."
+          description="Mark items as important to see them here."
         />
       ) : (
         sections.map((section) => {
@@ -150,22 +162,33 @@ export default function Important() {
                         {item.value}
                       </p>
                       <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          type="button"
+                          className="rounded p-1 transition-colors hover:opacity-80 cursor-pointer"
+                          style={{ color: "#8f97a5" }}
+                          onClick={() => handleOpenEdit(item)}
+                          title="Edit item"
+                        >
+                          <Edit3 className="h-3 w-3" />
+                        </button>
                         {section.category === "link" && (
                           <a
                             href={item.value}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded p-1 transition-colors hover:opacity-80"
+                            className="rounded p-1 transition-colors hover:opacity-80 cursor-pointer"
                             style={{ color: "#8f97a5" }}
+                            title="Open link"
                           >
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         )}
                         <button
                           type="button"
-                          className="rounded p-1 transition-colors hover:opacity-80"
+                          className="rounded p-1 transition-colors hover:opacity-80 cursor-pointer"
                           style={{ color: "#c0392b" }}
                           onClick={() => deleteItem(item.id)}
+                          title="Delete item"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -187,6 +210,13 @@ export default function Important() {
           );
         })
       )}
+
+      <ImportantModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchItems}
+        itemToEdit={itemToEdit}
+      />
     </div>
   );
 }

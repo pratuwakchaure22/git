@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { DeadlineModal } from "@/components/modals/DeadlineModal";
 import type { Deadline } from "@/types";
 
 function daysUntil(dateStr: string) {
@@ -24,6 +25,9 @@ export default function Deadlines() {
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deadlineToEdit, setDeadlineToEdit] = useState<Deadline | null>(null);
 
   useEffect(() => {
     if (user) fetchDeadlines();
@@ -73,6 +77,16 @@ export default function Deadlines() {
     if (error) { console.error(error); fetchDeadlines(); }
   }
 
+  function handleOpenCreate() {
+    setDeadlineToEdit(null);
+    setIsModalOpen(true);
+  }
+
+  function handleOpenEdit(deadline: Deadline) {
+    setDeadlineToEdit(deadline);
+    setIsModalOpen(true);
+  }
+
   const overdueDeadlines = deadlines.filter((d) => d.status === "overdue");
   const upcomingDeadlines = deadlines.filter((d) => d.status === "upcoming");
 
@@ -97,9 +111,9 @@ export default function Deadlines() {
         actions={
           <button
             type="button"
-            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 cursor-pointer"
             style={{ backgroundColor: "#2a8c82" }}
-            onClick={() => alert("Create deadline modal not implemented")}
+            onClick={handleOpenCreate}
           >
             <Plus className="h-4 w-4" />
             New Deadline
@@ -199,17 +213,19 @@ export default function Deadlines() {
               <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
                   type="button"
-                  className="rounded p-1.5"
+                  className="rounded p-1.5 cursor-pointer"
                   style={{ color: "#8f97a5" }}
-                  onClick={() => alert("Edit modal not implemented")}
+                  onClick={() => handleOpenEdit(d)}
+                  title="Edit deadline"
                 >
                   <Edit3 className="h-3.5 w-3.5" />
                 </button>
                 <button
                   type="button"
-                  className="rounded p-1.5"
+                  className="rounded p-1.5 cursor-pointer"
                   style={{ color: "#c0392b" }}
                   onClick={() => deleteDeadline(d.id)}
+                  title="Delete deadline"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -218,6 +234,13 @@ export default function Deadlines() {
           ))}
         </div>
       )}
+
+      <DeadlineModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchDeadlines}
+        deadlineToEdit={deadlineToEdit}
+      />
     </div>
   );
 }

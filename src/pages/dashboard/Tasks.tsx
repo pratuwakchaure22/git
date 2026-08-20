@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { TaskModal } from "@/components/modals/TaskModal";
 import type { Task } from "@/types";
 
 export default function Tasks() {
@@ -17,6 +18,9 @@ export default function Tasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -85,7 +89,6 @@ export default function Tasks() {
 
     if (error) {
       console.error("Error toggling task:", error);
-      // Revert on error
       fetchTasks();
     }
   }
@@ -100,6 +103,16 @@ export default function Tasks() {
       console.error("Error deleting task:", error);
       fetchTasks();
     }
+  }
+
+  function handleOpenCreate() {
+    setTaskToEdit(null);
+    setIsModalOpen(true);
+  }
+
+  function handleOpenEdit(task: Task) {
+    setTaskToEdit(task);
+    setIsModalOpen(true);
   }
 
   const tabs = [
@@ -129,9 +142,9 @@ export default function Tasks() {
         actions={
           <button
             type="button"
-            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 cursor-pointer"
             style={{ backgroundColor: "#2a8c82" }}
-            onClick={() => alert("Create task modal not implemented in this demo")}
+            onClick={handleOpenCreate}
           >
             <Plus className="h-4 w-4" />
             New Task
@@ -171,7 +184,7 @@ export default function Tasks() {
               <button
                 type="button"
                 onClick={() => toggleTask(task.id)}
-                className="mt-0.5 flex-shrink-0 transition-colors hover:opacity-80"
+                className="mt-0.5 flex-shrink-0 transition-colors hover:opacity-80 cursor-pointer"
                 aria-label={task.status === "completed" ? "Mark incomplete" : "Mark complete"}
               >
                 {task.status === "completed" ? (
@@ -217,17 +230,19 @@ export default function Tasks() {
               <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
                   type="button"
-                  className="rounded p-1.5 transition-colors hover:opacity-80"
+                  className="rounded p-1.5 transition-colors hover:opacity-80 cursor-pointer"
                   style={{ color: "#8f97a5" }}
-                  onClick={() => alert("Edit modal not implemented")}
+                  onClick={() => handleOpenEdit(task)}
+                  title="Edit task"
                 >
                   <Edit3 className="h-3.5 w-3.5" />
                 </button>
                 <button
                   type="button"
-                  className="rounded p-1.5 transition-colors hover:opacity-80"
+                  className="rounded p-1.5 transition-colors hover:opacity-80 cursor-pointer"
                   style={{ color: "#c0392b" }}
                   onClick={() => deleteTask(task.id)}
+                  title="Delete task"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -236,6 +251,13 @@ export default function Tasks() {
           ))}
         </div>
       )}
+
+      <TaskModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchTasks}
+        taskToEdit={taskToEdit}
+      />
     </div>
   );
 }

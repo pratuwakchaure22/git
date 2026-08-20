@@ -57,7 +57,7 @@ export function ChatPreviewMock() {
 
       <div className="border-t border-line p-4">
         <div className="flex items-center gap-3 rounded-xl border border-line bg-paper px-4 py-3 opacity-60">
-          <span className="flex-1 truncate font-body text-sm text-muted">Ask a question about my work... (coming soon)</span>
+          <span className="flex-1 truncate font-body text-sm text-muted">Ask a question about my work...</span>
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-line-strong text-paper">
             <ArrowUp className="h-3.5 w-3.5" strokeWidth={1.75} />
           </span>

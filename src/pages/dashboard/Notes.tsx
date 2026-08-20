@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plus, Pin, Tag, Trash2 } from "lucide-react";
+import { Plus, Pin, Tag, Trash2, Edit3, Archive } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Tabs } from "@/components/ui/Tabs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { NoteModal } from "@/components/modals/NoteModal";
 import type { Note, NoteCategory } from "@/types";
 
 const categoryColors: Record<NoteCategory, string> = {
@@ -29,6 +30,9 @@ export default function Notes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
 
   useEffect(() => {
     if (user) fetchNotes();
@@ -78,6 +82,24 @@ export default function Notes() {
     if (error) { console.error(error); fetchNotes(); }
   }
 
+  async function toggleArchive(id: string, archived: boolean, e: React.MouseEvent) {
+    e.stopPropagation();
+    setNotes((prev) => prev.map((n) => n.id === id ? { ...n, archived: !archived } : n));
+    const { error } = await supabase.from("notes").update({ archived: !archived }).eq("id", id);
+    if (error) { console.error(error); fetchNotes(); }
+  }
+
+  function handleOpenCreate() {
+    setNoteToEdit(null);
+    setIsModalOpen(true);
+  }
+
+  function handleOpenEdit(note: Note, e: React.MouseEvent) {
+    e.stopPropagation();
+    setNoteToEdit(note);
+    setIsModalOpen(true);
+  }
+
   const allNotes = notes.filter((n) => !n.archived);
   const pinnedNotes = notes.filter((n) => n.pinned && !n.archived);
   const archivedNotes = notes.filter((n) => n.archived);
@@ -109,9 +131,9 @@ export default function Notes() {
         actions={
           <button
             type="button"
-            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 cursor-pointer"
             style={{ backgroundColor: "#2a8c82" }}
-            onClick={() => alert("Create note modal not implemented in this demo")}
+            onClick={handleOpenCreate}
           >
             <Plus className="h-4 w-4" />
             New Note
@@ -130,7 +152,7 @@ export default function Notes() {
               key={c}
               type="button"
               onClick={() => setCategory(c)}
-              className="flex-shrink-0 rounded border px-2.5 py-1 font-mono text-xs capitalize transition-colors"
+              className="flex-shrink-0 rounded border px-2.5 py-1 font-mono text-xs capitalize transition-colors cursor-pointer"
               style={{
                 borderColor: category === c ? "#2a8c82" : "#2e3540",
                 backgroundColor: category === c ? "#1a302e" : "#1e232b",
@@ -171,6 +193,14 @@ export default function Notes() {
                 <div className="flex flex-shrink-0 items-center gap-1">
                   <button
                     type="button"
+                    onClick={(e) => handleOpenEdit(note, e)}
+                    className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    title="Edit note"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" style={{ color: "#8f97a5" }} />
+                  </button>
+                  <button
+                    type="button"
                     onClick={(e) => togglePin(note.id, note.pinned, e)}
                     className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                     title={note.pinned ? "Unpin" : "Pin"}
@@ -179,6 +209,14 @@ export default function Notes() {
                       className="h-3.5 w-3.5"
                       style={{ color: note.pinned ? "#b8763a" : "#5b6472" }}
                     />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => toggleArchive(note.id, note.archived, e)}
+                    className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    title={note.archived ? "Unarchive" : "Archive"}
+                  >
+                    <Archive className="h-3.5 w-3.5" style={{ color: "#8f97a5" }} />
                   </button>
                   <button
                     type="button"
@@ -230,6 +268,13 @@ export default function Notes() {
           ))}
         </div>
       )}
+
+      <NoteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchNotes}
+        noteToEdit={noteToEdit}
+      />
     </div>
   );
 }
