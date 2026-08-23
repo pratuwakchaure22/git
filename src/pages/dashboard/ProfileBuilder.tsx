@@ -159,52 +159,258 @@ function EducationSection() {
   const { data, addEducation, deleteEducation } = useResumeData();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Omit<ResumeEducation, "id">>({
-    institution: "", degree: "", field_of_study: "", start_date: "", end_date: "",
+    institution: "",
+    degree: "",
+    field_of_study: "",
+    level: "Bachelor's",
+    board_university: "",
+    start_date: "",
+    end_date: "",
+    percentage: "",
+    cgpa_gpa: "",
+    marks_obtained: "",
+    max_marks: "",
+    specialization: "",
+    relevant_subjects: "",
+    description: "",
   });
+
+  const levelOptions = [
+    "High School (10th)",
+    "Senior Secondary (12th)",
+    "Diploma",
+    "Bachelor's",
+    "Master's",
+    "Ph.D.",
+    "Certificate",
+    "Other",
+  ];
 
   async function handleAdd() {
     if (!form.institution.trim()) return;
     await addEducation(form);
-    setForm({ institution: "", degree: "", field_of_study: "", start_date: "", end_date: "" });
+    setForm({
+      institution: "",
+      degree: "",
+      field_of_study: "",
+      level: "Bachelor's",
+      board_university: "",
+      start_date: "",
+      end_date: "",
+      percentage: "",
+      cgpa_gpa: "",
+      marks_obtained: "",
+      max_marks: "",
+      specialization: "",
+      relevant_subjects: "",
+      description: "",
+    });
     setShowForm(false);
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {data.education.map((e) => (
-        <div key={e.id} className="flex items-start justify-between gap-2 rounded-xl border border-[#2A2A3A] bg-[#20202E] p-3">
-          <div>
-            <p className="text-xs font-semibold text-[#F4F4F7]">{e.degree} {e.field_of_study ? `— ${e.field_of_study}` : ""}</p>
-            <p className="font-mono text-[11px] text-[#4F7CFF]">{e.institution}</p>
-            <p className="font-mono text-[10px] text-[#9A9AA8]">{e.start_date} – {e.end_date}</p>
+        <div key={e.id} className="rounded-xl border border-[#2A2A3A] bg-[#20202E] p-4 transition-all hover:border-[#4F7CFF]/30">
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                {e.level && (
+                  <span className="rounded-md border border-[#4F7CFF]/30 bg-[#4F7CFF]/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-[#4F7CFF]">
+                    {e.level}
+                  </span>
+                )}
+                <h4 className="text-xs font-bold text-[#F4F4F7]">
+                  {e.degree || "Qualification"} {e.field_of_study ? `in ${e.field_of_study}` : ""}
+                </h4>
+              </div>
+              <p className="font-mono text-[11px] font-semibold text-[#2a8c82]">{e.institution}</p>
+              {e.board_university && (
+                <p className="font-mono text-[10px] text-[#9A9AA8]">University/Board: {e.board_university}</p>
+              )}
+              <div className="flex flex-wrap items-center gap-3 pt-1 font-mono text-[10px] text-[#9A9AA8]">
+                <span>{e.start_date} – {e.end_date || "Present"}</span>
+                {e.cgpa_gpa && <span className="text-[#FFC43D] font-semibold">CGPA: {e.cgpa_gpa}</span>}
+                {e.percentage && <span className="text-[#48C774] font-semibold">Score: {e.percentage}%</span>}
+                {e.marks_obtained && <span>Marks: {e.marks_obtained} {e.max_marks ? `/ ${e.max_marks}` : ""}</span>}
+              </div>
+              {e.specialization && (
+                <p className="text-[11px] text-[#9A9AA8]">Spec: <span className="text-[#F4F4F7]">{e.specialization}</span></p>
+              )}
+              {e.relevant_subjects && (
+                <p className="text-[11px] text-[#9A9AA8]">Subjects: <span className="text-[#F4F4F7]">{e.relevant_subjects}</span></p>
+              )}
+              {e.description && (
+                <p className="mt-1 text-xs text-[#9A9AA8] line-clamp-2">{e.description}</p>
+              )}
+            </div>
+            <button type="button" className="rounded-lg p-1.5 text-[#FF5C6C] hover:bg-[#FF5C6C]/10" onClick={() => deleteEducation(e.id)}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
           </div>
-          <button type="button" className="rounded-lg p-1.5 text-[#FF5C6C] hover:bg-[#FF5C6C]/10" onClick={() => deleteEducation(e.id)}>
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
         </div>
       ))}
+
       {showForm && (
         <div className="rounded-xl border border-[#4F7CFF]/40 bg-[#20202E] p-4 space-y-3 shadow-lg">
-          {(["institution", "degree", "field_of_study", "start_date", "end_date"] as const).map((f) => (
-            <div key={f}>
-              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">{f.replace(/_/g, " ")}</p>
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#4F7CFF]">New Education Entry</p>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Academic Level</p>
+              <select
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.level}
+                onChange={(e) => setForm((p) => ({ ...p, level: e.target.value }))}
+              >
+                {levelOptions.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Institution Name *</p>
               <input
                 className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
-                value={form[f]}
-                onChange={(e) => setForm((p) => ({ ...p, [f]: e.target.value }))}
-                placeholder={f === "end_date" ? "Present" : ""}
+                value={form.institution}
+                onChange={(e) => setForm((p) => ({ ...p, institution: e.target.value }))}
+                placeholder="e.g. Stanford University or Delhi Public School"
               />
             </div>
-          ))}
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Degree / Qualification</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.degree}
+                onChange={(e) => setForm((p) => ({ ...p, degree: e.target.value }))}
+                placeholder="e.g. B.Tech / B.S. / Higher Secondary"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Course / Field of Study</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.field_of_study}
+                onChange={(e) => setForm((p) => ({ ...p, field_of_study: e.target.value }))}
+                placeholder="e.g. Computer Science"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">University / Board</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.board_university}
+                onChange={(e) => setForm((p) => ({ ...p, board_university: e.target.value }))}
+                placeholder="e.g. CBSE / Autonomous / Anna University"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Specialization / Track</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.specialization}
+                onChange={(e) => setForm((p) => ({ ...p, specialization: e.target.value }))}
+                placeholder="e.g. AI/ML, Science Stream"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Start Year</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.start_date}
+                onChange={(e) => setForm((p) => ({ ...p, start_date: e.target.value }))}
+                placeholder="e.g. 2021"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">End Year / Passing Year</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.end_date}
+                onChange={(e) => setForm((p) => ({ ...p, end_date: e.target.value }))}
+                placeholder="e.g. 2025 or Present"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">CGPA / GPA</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.cgpa_gpa}
+                onChange={(e) => setForm((p) => ({ ...p, cgpa_gpa: e.target.value }))}
+                placeholder="e.g. 9.1 / 10"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Percentage %</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.percentage}
+                onChange={(e) => setForm((p) => ({ ...p, percentage: e.target.value }))}
+                placeholder="e.g. 88.5"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Marks Obtained</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.marks_obtained}
+                onChange={(e) => setForm((p) => ({ ...p, marks_obtained: e.target.value }))}
+                placeholder="e.g. 475"
+              />
+            </div>
+
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Total Marks</p>
+              <input
+                className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+                value={form.max_marks}
+                onChange={(e) => setForm((p) => ({ ...p, max_marks: e.target.value }))}
+                placeholder="e.g. 500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Relevant Subjects / Coursework</p>
+            <input
+              className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-3 py-1.5 text-xs text-[#F4F4F7] outline-none focus:border-[#4F7CFF]"
+              value={form.relevant_subjects}
+              onChange={(e) => setForm((p) => ({ ...p, relevant_subjects: e.target.value }))}
+              placeholder="e.g. Data Structures, OS, Machine Learning"
+            />
+          </div>
+
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-wider mb-1 text-[#9A9AA8]">Description & Achievements</p>
+            <textarea
+              className="w-full rounded-xl border border-[#2A2A3A] bg-[#1B1B28] p-2 text-xs text-[#F4F4F7] outline-none resize-none focus:border-[#4F7CFF]"
+              rows={2}
+              value={form.description}
+              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              placeholder="Thesis, rank, honors, or key activities..."
+            />
+          </div>
+
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={handleAdd} className="rounded-xl bg-[#4F7CFF] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#3b66e0]">Add</button>
+            <button type="button" onClick={handleAdd} className="rounded-xl bg-[#4F7CFF] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#3b66e0]">Add Entry</button>
             <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-4 py-1.5 text-xs text-[#9A9AA8]">Cancel</button>
           </div>
         </div>
       )}
+
       {!showForm && (
         <button type="button" onClick={() => setShowForm(true)} className="flex w-full items-center gap-2 rounded-xl border border-dashed border-[#2A2A3A] bg-[#20202E] p-3 text-xs text-[#9A9AA8] hover:border-[#4F7CFF]/40 hover:text-[#F4F4F7]">
-          <Plus className="h-3.5 w-3.5 text-[#4F7CFF]" />Add education
+          <Plus className="h-3.5 w-3.5 text-[#4F7CFF]" />Add education entry
         </button>
       )}
     </div>

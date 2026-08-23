@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Download, RefreshCw, Clock } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useResumeData } from "@/hooks/useResumeData";
+import { downloadResumePdf } from "@/utils/pdfGenerator";
 
 const versions = [
   { id: "v3", label: "v3 — Current", date: "Live Supabase Data", note: "Synchronized with database" },
@@ -30,24 +31,20 @@ export default function Resume() {
     );
   }
 
+  const [pdfError, setPdfError] = useState("");
+
   async function handleDownloadPDF() {
     if (!previewRef.current) return;
     setGenerating(true);
+    setPdfError("");
     try {
-      const html2pdf = (await import("html2pdf.js")).default;
-      const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: `resume-${data.profile.full_name.replace(/\s+/g, "-").toLowerCase() || "resume"}.pdf`,
-        image: { type: "jpeg" as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: "mm" as const, format: "a4" as const, orientation: "portrait" as const },
-      };
-      await html2pdf().set(opt).from(previewRef.current).save();
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-      alert("PDF generation failed. Please try again.");
+      await downloadResumePdf(previewRef.current, "Pratik-Wakchaure-Resume.pdf");
+    } catch (err: any) {
+      console.error("PDF generation error:", err);
+      setPdfError(err?.message || "Failed to generate PDF. Please try again.");
+    } finally {
+      setGenerating(false);
     }
-    setGenerating(false);
   }
 
   const isIncluded = (id: string) => sections.find((s) => s.id === id)?.included;
@@ -87,6 +84,12 @@ export default function Resume() {
           </div>
         }
       />
+
+      {pdfError && (
+        <div className="rounded-xl border border-[#FF5C6C]/40 bg-[#FF5C6C]/10 p-3 text-xs text-[#FF5C6C]">
+          {pdfError}
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Left: config */}
@@ -192,12 +195,29 @@ export default function Resume() {
                   <div className="mb-5">
                     <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">Education</h2>
                     {data.education.map((e) => (
-                      <div key={e.id} className="mb-3">
+                      <div key={e.id} className="mb-3.5">
                         <div className="flex justify-between items-baseline">
-                          <span className="text-xs font-bold text-gray-900">{e.degree}{e.field_of_study ? ` — ${e.field_of_study}` : ""}</span>
-                          <span className="text-[11px] font-mono text-gray-400">{e.start_date}–{e.end_date}</span>
+                          <span className="text-xs font-bold text-gray-900">
+                            {e.degree || e.level || "Qualification"}
+                            {e.field_of_study ? ` — ${e.field_of_study}` : ""}
+                            {e.specialization ? ` (${e.specialization})` : ""}
+                          </span>
+                          <span className="text-[11px] font-mono text-gray-500">
+                            {e.start_date ? `${e.start_date} – ${e.end_date || "Present"}` : e.end_date || ""}
+                          </span>
                         </div>
-                        <p className="text-xs font-semibold text-gray-600">{e.institution}</p>
+                        <div className="flex flex-wrap items-center gap-x-3 text-xs font-semibold text-gray-700">
+                          <span>{e.institution}</span>
+                          {e.board_university && <span className="text-gray-500 font-normal">({e.board_university})</span>}
+                          {e.cgpa_gpa && <span className="text-gray-800 font-mono">CGPA: {e.cgpa_gpa}</span>}
+                          {e.percentage && <span className="text-gray-800 font-mono">Score: {e.percentage}%</span>}
+                          {e.marks_obtained && <span className="text-gray-800 font-mono">Marks: {e.marks_obtained}{e.max_marks ? `/${e.max_marks}` : ""}</span>}
+                        </div>
+                        {e.relevant_subjects && (
+                          <p className="mt-0.5 text-[11px] text-gray-600">
+                            <span className="font-semibold text-gray-700">Coursework:</span> {e.relevant_subjects}
+                          </p>
+                        )}
                         {e.description && <p className="mt-0.5 text-xs text-gray-500">{e.description}</p>}
                       </div>
                     ))}

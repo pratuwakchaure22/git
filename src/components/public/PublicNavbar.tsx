@@ -40,9 +40,15 @@ export function PublicNavbar() {
             </span>
           </Link>
 
-          {/* Right: Theme toggle + Login */}
+          {/* Right: Theme toggle + Resume + Login */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
+            <Link
+              to="/resume"
+              className="rounded border border-[#2e3540] px-3 py-1.5 font-body text-sm font-medium text-[#e9ebf0] transition-colors hover:border-[#2a8c82] hover:text-[#2a8c82]"
+            >
+              Resume
+            </Link>
             <NavLink
               to="/login"
               className={({ isActive }) =>

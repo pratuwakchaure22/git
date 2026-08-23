@@ -24,6 +24,17 @@ export interface ResumeEducation {
   field_of_study: string;
   start_date: string;
   end_date: string;
+  level?: string;
+  board_university?: string;
+  is_current?: boolean;
+  percentage?: string;
+  cgpa_gpa?: string;
+  marks_obtained?: string;
+  max_marks?: string;
+  rank_distinction?: string;
+  specialization?: string;
+  relevant_subjects?: string;
+  achievements?: string;
   description?: string;
 }
 
@@ -139,7 +150,18 @@ export function useResumeData() {
         field_of_study: e.field_of_study || "",
         start_date: e.start_date ? String(e.start_date).slice(0, 4) : "",
         end_date: e.end_date ? String(e.end_date).slice(0, 4) : "Present",
-        description: e.description,
+        level: e.level || "",
+        board_university: e.board_university || "",
+        is_current: e.is_current || false,
+        percentage: e.percentage || "",
+        cgpa_gpa: e.cgpa_gpa || "",
+        marks_obtained: e.marks_obtained || "",
+        max_marks: e.max_marks || "",
+        rank_distinction: e.rank_distinction || "",
+        specialization: e.specialization || "",
+        relevant_subjects: e.relevant_subjects || "",
+        achievements: e.achievements || "",
+        description: e.description || "",
       })),
       experience: (experienceRes.data || []).map((e: any) => ({
         id: e.id,

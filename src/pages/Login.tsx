@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, AlertCircle, ShieldCheck, KeyRound } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,6 +11,11 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  
+  // MFA login challenge state
+  const [showMfaStep, setShowMfaStep] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [isVerifyingMfa, setIsVerifyingMfa] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,9 +26,53 @@ export default function Login() {
     }
     try {
       await login(form.email, form.password);
+
+      // Check if MFA challenge is required (AAL2)
+      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalData && aalData.currentLevel === "aal1" && aalData.nextLevel === "aal2") {
+        setShowMfaStep(true);
+        return;
+      }
+
       navigate("/dashboard");
-    } catch {
-      setError("Invalid credentials. Please try again.");
+    } catch (err: any) {
+      setError(err?.message || "Invalid credentials. Please try again.");
+    }
+  }
+
+  async function handleVerifyMfa(e: React.FormEvent) {
+    e.preventDefault();
+    if (!mfaCode || mfaCode.length !== 6) {
+      setError("Please enter a valid 6-digit TOTP code.");
+      return;
+    }
+    setIsVerifyingMfa(true);
+    setError("");
+    try {
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const totpFactor = factorsData?.totp?.[0];
+      if (!totpFactor) {
+        throw new Error("No TOTP factor enrolled.");
+      }
+
+      const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({
+        factorId: totpFactor.id,
+      });
+      if (challengeErr) throw challengeErr;
+
+      const { error: verifyErr } = await supabase.auth.mfa.verify({
+        factorId: totpFactor.id,
+        challengeId: challengeData.id,
+        code: mfaCode,
+      });
+      if (verifyErr) throw verifyErr;
+
+      navigate("/dashboard");
+    } catch (err: any) {
+      console.error("MFA verification error:", err);
+      setError(err?.message || "Invalid 2FA code. Please try again.");
+    } finally {
+      setIsVerifyingMfa(false);
     }
   }
 
@@ -30,9 +80,9 @@ export default function Login() {
     setError("");
     try {
       await loginWithGoogle();
-      navigate("/dashboard");
-    } catch {
-      setError("Google sign-in failed.");
+    } catch (err: any) {
+      console.error("Google sign-in error:", err);
+      setError("Google sign-in failed. Please check your browser popup settings.");
     }
   }
 
@@ -79,8 +129,63 @@ export default function Login() {
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {showMfaStep ? (
+          <form onSubmit={handleVerifyMfa} className="space-y-4" noValidate>
+            <div className="flex items-center gap-2 rounded-xl border border-[#4F7CFF]/40 bg-[#4F7CFF]/10 p-3 text-xs text-[#4F7CFF]">
+              <ShieldCheck className="h-4 w-4 flex-shrink-0" />
+              <span>Two-factor authentication is active on your account. Enter your 6-digit TOTP code.</span>
+            </div>
+
+            <div>
+              <label
+                htmlFor="mfa-code"
+                className="mb-1.5 block font-mono text-xs uppercase tracking-wider"
+                style={{ color: "#8f97a5" }}
+              >
+                6-Digit Authenticator Code
+              </label>
+              <div className="relative">
+                <KeyRound
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                  style={{ color: "#8f97a5" }}
+                />
+                <input
+                  id="mfa-code"
+                  type="text"
+                  maxLength={6}
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="123456"
+                  className="w-full rounded border py-2.5 pl-9 pr-3 text-sm font-mono tracking-widest outline-none transition-colors focus:border-[#4F7CFF]"
+                  style={{
+                    backgroundColor: "#252c36",
+                    borderColor: "#2e3540",
+                    color: "#e9ebf0",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => { setShowMfaStep(false); setError(""); setMfaCode(""); }}
+                className="w-1/3 rounded border border-[#2e3540] py-2.5 font-body text-xs font-medium text-[#8f97a5] hover:text-white"
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                disabled={isVerifyingMfa || mfaCode.length !== 6}
+                className="flex-1 rounded bg-[#4F7CFF] py-2.5 font-body text-sm font-semibold text-white shadow-md transition-all hover:bg-[#3b66e0] disabled:opacity-50"
+              >
+                {isVerifyingMfa ? "Verifying..." : "Verify & Sign In"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          /* Standard Login Form */
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
             <label
               htmlFor="login-email"
@@ -173,6 +278,7 @@ export default function Login() {
             )}
           </button>
         </form>
+      )}
 
         {/* Divider */}
         <div className="my-5 flex items-center gap-3">

@@ -107,12 +107,10 @@ export default function Documents() {
 
     // Documents bucket is private — store the path and generate signed URLs on demand.
     // For display, we save the storage path (not a public URL).
-    const { data: urlData } = supabase.storage.from("documents").getPublicUrl(filePath);
-
     const { error: dbError } = await supabase.from("documents").insert({
       user_id: user.id,
       name: file.name,
-      file_url: urlData.publicUrl,
+      file_url: filePath,
       size: file.size,
       type: getExtension(file.name),
       category: "other",
@@ -148,11 +146,30 @@ export default function Documents() {
     if (error) { console.error(error); fetchDocuments(); }
   }
 
-  async function downloadDocument(doc: Document & { file_url?: string }) {
-    // Fetch the file_url from DB
-    const { data } = await supabase.from("documents").select("file_url").eq("id", doc.id).single();
-    if (data?.file_url) {
-      window.open(data.file_url, "_blank");
+  async function downloadDocument(doc: Document & { file_url?: string }, isDownload = true) {
+    if (!user) return;
+    const { data: dbData } = await supabase.from("documents").select("file_url, name").eq("id", doc.id).single();
+    if (!dbData?.file_url) return;
+
+    let path = dbData.file_url;
+    if (path.includes("/object/public/documents/")) {
+      path = path.split("/object/public/documents/")[1] || path;
+    } else if (path.includes("/object/authenticated/documents/")) {
+      path = path.split("/object/authenticated/documents/")[1] || path;
+    }
+
+    const targetPath = path.startsWith(`${user.id}/`) ? path : `${user.id}/${path}`;
+
+    const { data: signedData, error: signedErr } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(targetPath, 3600, isDownload ? { download: doc.name } : undefined);
+
+    if (signedData?.signedUrl) {
+      window.open(signedData.signedUrl, "_blank");
+    } else if (dbData.file_url.startsWith("http")) {
+      window.open(dbData.file_url, "_blank");
+    } else {
+      console.error("Signed URL error:", signedErr);
     }
   }
 

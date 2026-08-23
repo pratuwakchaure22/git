@@ -227,7 +227,7 @@ export default function Home() {
             {/* Quick Actions */}
             <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
               <Link
-                to="/dashboard/resume"
+                to="/resume"
                 className="flex items-center gap-2 rounded-xl bg-[#171a20] px-5 py-2.5 font-mono text-xs font-semibold text-[#f4f1ea] shadow-lg transition-transform hover:-translate-y-0.5"
               >
                 View Resume <ArrowRight className="h-3.5 w-3.5" />

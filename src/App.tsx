@@ -10,6 +10,7 @@ import { RouteLoader } from "@/components/common/RouteLoader";
 // Public pages
 const Home = lazy(() => import("@/pages/Home"));
 const Login = lazy(() => import("@/pages/Login"));
+const PublicResume = lazy(() => import("@/pages/PublicResume"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 // Dashboard pages
@@ -43,6 +44,7 @@ export default function App() {
               {/* Public */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/resume" element={<PublicResume />} />
 
               {/* Dashboard — protected */}
               <Route

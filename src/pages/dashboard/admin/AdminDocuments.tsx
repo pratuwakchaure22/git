@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Trash2, Download, Loader2 } from "lucide-react";
-import { mockDocuments } from "@/data/mockDocuments";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -22,7 +21,7 @@ export default function AdminDocuments() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (data && data.length > 0) {
+    if (data) {
       setDocList(
         data.map((d: any) => ({
           id: d.id,
@@ -35,7 +34,29 @@ export default function AdminDocuments() {
         }))
       );
     } else {
-      setDocList(mockDocuments);
+      setDocList([]);
+    }
+  }
+
+  async function handleDownload(doc: any) {
+    if (!user) return;
+    let path = doc.file_url || "";
+    if (path.includes("/object/public/documents/")) {
+      path = path.split("/object/public/documents/")[1] || path;
+    } else if (path.includes("/object/authenticated/documents/")) {
+      path = path.split("/object/authenticated/documents/")[1] || path;
+    }
+
+    const targetPath = path.startsWith(`${user.id}/`) ? path : `${user.id}/${path}`;
+
+    const { data: signedData } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(targetPath, 3600, { download: doc.name });
+
+    if (signedData?.signedUrl) {
+      window.open(signedData.signedUrl, "_blank");
+    } else if (doc.file_url?.startsWith("http")) {
+      window.open(doc.file_url, "_blank");
     }
   }
 
@@ -48,11 +69,10 @@ export default function AdminDocuments() {
     const { error: uploadErr } = await supabase.storage.from("documents").upload(filePath, file);
 
     if (!uploadErr) {
-      const { data: urlData } = supabase.storage.from("documents").getPublicUrl(filePath);
       await supabase.from("documents").insert({
         user_id: user.id,
         name: file.name,
-        file_url: urlData.publicUrl,
+        file_url: filePath,
         size: file.size,
         type: file.name.split(".").pop() || "file",
         category: "general",
@@ -132,11 +152,9 @@ export default function AdminDocuments() {
                 <td className="px-4 py-3 font-mono text-xs text-[#9A9AA8]">{d.updatedAt}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
-                    {d.file_url && (
-                      <a href={d.file_url} target="_blank" rel="noreferrer" className="rounded-lg p-1.5 text-[#4F7CFF] transition-colors hover:bg-[#4F7CFF]/10">
-                        <Download className="h-3.5 w-3.5" />
-                      </a>
-                    )}
+                    <button type="button" onClick={() => handleDownload(d)} className="rounded-lg p-1.5 text-[#4F7CFF] transition-colors hover:bg-[#4F7CFF]/10 cursor-pointer" title="Download">
+                      <Download className="h-3.5 w-3.5" />
+                    </button>
                     <button type="button" onClick={() => handleDelete(d.id)} className="rounded-lg p-1.5 text-[#FF5C6C] transition-colors hover:bg-[#FF5C6C]/10"><Trash2 className="h-3.5 w-3.5" /></button>
                   </div>
                 </td>
