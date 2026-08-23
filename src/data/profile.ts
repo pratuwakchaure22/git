@@ -1,9 +1,9 @@
 import type { NavItem, SocialLink, Stat } from "@/types";
 
 export const profile = {
-  name: "Pratik",
-  fullName: "Pratik Kumar",
-  initials: "PK",
+  name: "Pratik Wakchaure",
+  fullName: "Pratik Wakchaure",
+  initials: "PW",
   role: "Software Engineer & AI/ML Researcher",
   tagline:
     "I design and ship intelligent software — from research prototypes to production systems that hold up under real traffic.",

@@ -8,9 +8,19 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activate — claim all clients
+// Activate — clear old caches and claim all clients immediately
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== APP_SHELL) {
+            return caches.delete(key);
+          }
+        })
+      )
+    ).then(() => self.clients.claim())
+  );
 });
 
 // Push event — fired when server sends a Web Push message

@@ -39,11 +39,20 @@ export default function Important() {
   async function fetchItems() {
     setIsLoading(true);
     setError("");
-    const { data, error } = await supabase
-      .from("notes")
+    let { data, error } = await supabase
+      .from("important")
       .select("*")
-      .eq("is_important", true)
       .order("created_at", { ascending: false });
+
+    if (error) {
+      const fallback = await supabase
+        .from("notes")
+        .select("*")
+        .eq("is_important", true)
+        .order("created_at", { ascending: false });
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       setError("Failed to load important items.");
@@ -52,9 +61,9 @@ export default function Important() {
       const mapped: ImportantItem[] = data.map((n: any) => ({
         id: n.id,
         title: n.title,
-        description: n.content,
+        description: n.description || n.content || "",
         category: (n.category || "information") as ImportantCategory,
-        value: n.content || "",
+        value: n.value || n.content || "",
         tags: n.tags || [],
         createdAt: n.created_at,
         pinned: n.pinned || false,
@@ -67,7 +76,11 @@ export default function Important() {
   async function deleteItem(id: string) {
     if (!confirm("Delete this item?")) return;
     setItems((prev) => prev.filter((i) => i.id !== id));
-    const { error } = await supabase.from("notes").delete().eq("id", id);
+    let { error } = await supabase.from("important").delete().eq("id", id);
+    if (error) {
+      const fallback = await supabase.from("notes").delete().eq("id", id);
+      error = fallback.error;
+    }
     if (error) { console.error(error); fetchItems(); }
   }
 

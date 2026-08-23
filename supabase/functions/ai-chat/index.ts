@@ -109,8 +109,9 @@ ${
     : "The user's workspace appears to be empty or no context is available."
 }`;
 
-    // Build message history for the Responses API
+    // Build message history for Chat Completions API
     const apiMessages = [
+      { role: "system", content: systemPrompt },
       ...history.map((h: { role: string; content: string }) => ({
         role: h.role,
         content: h.content,
@@ -118,51 +119,68 @@ ${
       { role: "user", content: message },
     ];
 
+    const groqKey = Deno.env.get("GROQ_API_KEY");
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openaiKey) {
-      return new Response(JSON.stringify({ error: "OpenAI API key not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
-    // Call OpenAI Responses API
-    const openaiRes = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${openaiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        instructions: systemPrompt,
-        input: apiMessages,
-      }),
-    });
-
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text();
-      console.error("OpenAI error:", errText);
-      return new Response(
-        JSON.stringify({ error: "OpenAI API error", details: errText }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const openaiData = await openaiRes.json();
-
-    // Extract text from Responses API output
     let reply = "";
-    if (openaiData.output) {
-      for (const item of openaiData.output) {
-        if (item.type === "message" && item.role === "assistant") {
-          for (const contentBlock of item.content ?? []) {
-            if (contentBlock.type === "output_text") {
-              reply += contentBlock.text;
-            }
-          }
-        }
+
+    if (groqKey) {
+      // Call Groq API (OpenAI-compatible)
+      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${groqKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: apiMessages,
+          temperature: 0.7,
+          max_tokens: 1024,
+        }),
+      });
+
+      if (!groqRes.ok) {
+        const errText = await groqRes.text();
+        console.error("Groq API error:", errText);
+        return new Response(
+          JSON.stringify({ error: "Groq API error", details: errText }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
+
+      const groqData = await groqRes.json();
+      reply = groqData.choices?.[0]?.message?.content || "";
+    } else if (openaiKey) {
+      // Call OpenAI Chat Completions API
+      const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openaiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: apiMessages,
+        }),
+      });
+
+      if (!openaiRes.ok) {
+        const errText = await openaiRes.text();
+        console.error("OpenAI error:", errText);
+        return new Response(
+          JSON.stringify({ error: "OpenAI API error", details: errText }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const openaiData = await openaiRes.json();
+      reply = openaiData.choices?.[0]?.message?.content || "";
+    } else {
+      return new Response(
+        JSON.stringify({ error: "Neither GROQ_API_KEY nor OPENAI_API_KEY is configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     if (!reply) {

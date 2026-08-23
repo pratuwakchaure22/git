@@ -18,7 +18,7 @@ SELECT cron.schedule(
     url := 'https://kxmxhexnekyxvkxibvma.supabase.co/functions/v1/process-notifications',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bXhoZXhuZWt5eHZreGlidm1hIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Njg5NTMxMiwiZXhwIjoyMTAyNDcxMzEyfQ.ym-qM5WrriyXPKO5c09A8rAHuuN_V1trXgOnBaq8-po'
+      'Authorization', 'Bearer <YOUR_SUPABASE_SERVICE_ROLE_KEY>'
     ),
     body := '{}'::jsonb
   ) AS request_id;
@@ -36,7 +36,7 @@ SELECT cron.schedule(
 --   url := 'https://kxmxhexnekyxvkxibvma.supabase.co/functions/v1/process-notifications',
 --   headers := jsonb_build_object(
 --     'Content-Type', 'application/json',
---     'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bXhoZXhuZWt5eHZreGlidm1hIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Njg5NTMxMiwiZXhwIjoyMTAyNDcxMzEyfQ.ym-qM5WrriyXPKO5c09A8rAHuuN_V1trXgOnBaq8-po'
+--     'Authorization', 'Bearer <YOUR_SUPABASE_SERVICE_ROLE_KEY>'
 --   ),
 --   body := '{}'::jsonb
 -- );

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Menu, Search, Bell, ChevronDown, LogOut, Settings, User, Globe } from "lucide-react";
+import { Menu, Search, ChevronDown, LogOut, Settings, User, Globe } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import { cn } from "@/lib/utils";
 
 interface TopBarProps {
@@ -71,18 +72,7 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
         </Link>
 
         {/* Notifications */}
-        <button
-          type="button"
-          className="relative rounded-xl border border-[#2A2A3A] bg-[#1B1B28] p-2 transition-all hover:border-[#4F7CFF]/40"
-          style={{ color: "#9A9AA8" }}
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-          {/* Unread badge */}
-          <span
-            className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#4F7CFF]"
-          />
-        </button>
+        <NotificationBell />
 
         {/* Profile dropdown */}
         <div className="relative">

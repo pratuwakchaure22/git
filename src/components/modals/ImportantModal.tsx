@@ -72,30 +72,58 @@ export function ImportantModal({ isOpen, onClose, onSuccess, itemToEdit }: Impor
 
     try {
       if (itemToEdit) {
-        const { error: updateErr } = await supabase
-          .from("notes")
+        let { error: updateErr } = await supabase
+          .from("important")
           .update({
+            title: title.trim(),
+            description: description.trim() || null,
+            value: value.trim() || null,
+            category,
+            tags,
+            pinned,
+          })
+          .eq("id", itemToEdit.id);
+
+        if (updateErr) {
+          const fallback = await supabase
+            .from("notes")
+            .update({
+              title: title.trim(),
+              content: value.trim() || description.trim(),
+              category,
+              tags,
+              pinned,
+              is_important: true,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", itemToEdit.id);
+          updateErr = fallback.error;
+        }
+
+        if (updateErr) throw updateErr;
+      } else {
+        let { error: insertErr } = await supabase.from("important").insert({
+          user_id: user.id,
+          title: title.trim(),
+          description: description.trim() || null,
+          value: value.trim() || null,
+          category,
+          tags,
+          pinned,
+        });
+
+        if (insertErr) {
+          const fallback = await supabase.from("notes").insert({
+            user_id: user.id,
             title: title.trim(),
             content: value.trim() || description.trim(),
             category,
             tags,
             pinned,
             is_important: true,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", itemToEdit.id);
-
-        if (updateErr) throw updateErr;
-      } else {
-        const { error: insertErr } = await supabase.from("notes").insert({
-          user_id: user.id,
-          title: title.trim(),
-          content: value.trim() || description.trim(),
-          category,
-          tags,
-          pinned,
-          is_important: true,
-        });
+          });
+          insertErr = fallback.error;
+        }
 
         if (insertErr) throw insertErr;
       }
