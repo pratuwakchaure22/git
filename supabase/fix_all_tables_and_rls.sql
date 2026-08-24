@@ -4,6 +4,18 @@
 -- 1. EDUCATION TABLE
 ALTER TABLE education ALTER COLUMN start_date TYPE TEXT USING start_date::text;
 ALTER TABLE education ALTER COLUMN end_date TYPE TEXT USING end_date::text;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS level TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS board_university TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS is_current BOOLEAN DEFAULT FALSE;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS percentage TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS cgpa_gpa TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS marks_obtained TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS max_marks TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS rank_distinction TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS specialization TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS relevant_subjects TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS achievements TEXT;
+
 
 -- 2. EXPERIENCE TABLE
 ALTER TABLE experience ALTER COLUMN start_date TYPE TEXT USING start_date::text;

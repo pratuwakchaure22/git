@@ -145,11 +145,11 @@ export function useResumeData() {
       },
       education: (educationRes.data || []).map((e: any) => ({
         id: e.id,
-        institution: e.institution,
+        institution: e.institution || "",
         degree: e.degree || "",
         field_of_study: e.field_of_study || "",
-        start_date: e.start_date ? String(e.start_date).slice(0, 4) : "",
-        end_date: e.end_date ? String(e.end_date).slice(0, 4) : "Present",
+        start_date: e.start_date ? String(e.start_date) : "",
+        end_date: e.end_date ? String(e.end_date) : "Present",
         level: e.level || "",
         board_university: e.board_university || "",
         is_current: e.is_current || false,
@@ -167,8 +167,8 @@ export function useResumeData() {
         id: e.id,
         company: e.company,
         position: e.position,
-        start_date: e.start_date ? String(e.start_date).slice(0, 4) : "",
-        end_date: e.end_date ? String(e.end_date).slice(0, 4) : "Present",
+        start_date: e.start_date ? String(e.start_date) : "",
+        end_date: e.end_date ? String(e.end_date) : "Present",
         description: e.description,
       })),
       skills: (skillsRes.data || []).map((s: any) => ({
@@ -190,7 +190,7 @@ export function useResumeData() {
       achievements: (achievementsRes.data || []).map((a: any) => ({
         id: a.id,
         title: a.title,
-        date: a.date ? String(a.date).slice(0, 4) : "",
+        date: a.date ? String(a.date) : "",
         description: a.description,
         organization: a.organization || "",
         position: a.position || "",
@@ -277,30 +277,150 @@ export function useResumeData() {
   }
 
   async function addEducation(item: Omit<ResumeEducation, "id">) {
-    if (!user) return;
-    const { error } = await supabase
-      .from("education")
-      .insert({ ...item, user_id: user.id });
-    if (!error) {
+    if (!user) {
+      const err = new Error("User not logged in");
+      console.error("Education insert error:", err);
+      return err;
+    }
+
+    const fullPayload: Record<string, any> = {
+      user_id: user.id,
+      institution: item.institution || "",
+      degree: item.degree || "",
+      field_of_study: item.field_of_study || "",
+      start_date: item.start_date || "",
+      end_date: item.end_date || "",
+      level: item.level || "",
+      board_university: item.board_university || "",
+      is_current: item.is_current || false,
+      percentage: item.percentage || "",
+      cgpa_gpa: item.cgpa_gpa || "",
+      marks_obtained: item.marks_obtained || "",
+      max_marks: item.max_marks || "",
+      rank_distinction: item.rank_distinction || "",
+      specialization: item.specialization || "",
+      relevant_subjects: item.relevant_subjects || "",
+      achievements: item.achievements || "",
+      description: item.description || "",
+    };
+
+    let { error } = await supabase.from("education").insert(fullPayload);
+
+    if (error && (error.code === "PGRST204" || error.message?.includes("schema cache") || error.message?.includes("column"))) {
+      console.warn("Supabase education table missing new schema columns. Retrying with schema fallback...", error.message);
+      
+      const fallbackDescription = [
+        item.description || "",
+        item.specialization ? `Specialization: ${item.specialization}` : "",
+        item.relevant_subjects ? `Coursework: ${item.relevant_subjects}` : "",
+      ].filter(Boolean).join(" | ");
+
+      const fallbackPayload: Record<string, any> = {
+        user_id: user.id,
+        institution: item.institution || "",
+        degree: item.degree || "",
+        field_of_study: item.field_of_study || "",
+        start_date: item.start_date || "",
+        end_date: item.end_date || "",
+        level: item.level || "",
+        board_university: item.board_university || "",
+        is_current: item.is_current || false,
+        percentage: item.percentage || "",
+        cgpa_gpa: item.cgpa_gpa || "",
+        marks_obtained: item.marks_obtained || "",
+        max_marks: item.max_marks || "",
+        rank_distinction: item.rank_distinction || "",
+        description: fallbackDescription,
+      };
+
+      const fallbackRes = await supabase.from("education").insert(fallbackPayload);
+      error = fallbackRes.error;
+    }
+
+    if (error) {
+      console.error("Failed to add education record to Supabase:", error);
+    } else {
       await fetchAll();
     }
     return error;
   }
 
   async function updateEducation(id: string, item: Partial<ResumeEducation>) {
-    const { error } = await supabase.from("education").update(item).eq("id", id);
-    if (!error) {
+    if (!user) {
+      const err = new Error("User not logged in");
+      console.error("Education update error:", err);
+      return err;
+    }
+
+    const { id: _ignoredId, ...updates } = item as any;
+
+    let { error } = await supabase
+      .from("education")
+      .update(updates)
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (error && (error.code === "PGRST204" || error.message?.includes("schema cache") || error.message?.includes("column"))) {
+      console.warn("Supabase education table missing new schema columns on update. Retrying with schema fallback...", error.message);
+      
+      const fallbackUpdates = { ...updates };
+      delete fallbackUpdates.specialization;
+      delete fallbackUpdates.relevant_subjects;
+      delete fallbackUpdates.achievements;
+
+      if (item.specialization || item.relevant_subjects) {
+        fallbackUpdates.description = [
+          item.description || "",
+          item.specialization ? `Specialization: ${item.specialization}` : "",
+          item.relevant_subjects ? `Coursework: ${item.relevant_subjects}` : "",
+        ].filter(Boolean).join(" | ");
+      }
+
+      const fallbackRes = await supabase
+        .from("education")
+        .update(fallbackUpdates)
+        .eq("id", id)
+        .eq("user_id", user.id);
+      error = fallbackRes.error;
+    }
+
+    if (error) {
+      console.error("Failed to update education record in Supabase:", error);
+    } else {
       await fetchAll();
     }
     return error;
   }
 
   async function deleteEducation(id: string) {
-    const { error } = await supabase.from("education").delete().eq("id", id);
-    if (!error) {
-      await fetchAll();
+    if (!user) {
+      const err = new Error("User not logged in");
+      console.error("Education delete error:", err);
+      return err;
     }
-    return error;
+    const { error, count } = await supabase
+      .from("education")
+      .delete({ count: "exact" })
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("Failed to delete education record from Supabase:", error);
+      return error;
+    }
+
+    if (count === 0) {
+      const err = new Error("Education record not found or permission denied");
+      console.error("Delete education error:", err);
+      return err;
+    }
+
+    setData((prev) => ({
+      ...prev,
+      education: prev.education.filter((item) => item.id !== id),
+    }));
+    await fetchAll();
+    return null;
   }
 
   async function addExperience(item: Omit<ResumeExperience, "id">) {

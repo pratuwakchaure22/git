@@ -28,6 +28,22 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const DEFAULT_AUTHORIZED_EMAILS = [
+  "pratikwakchaure22@gmail.com",
+  "wakchaurepratik22@gmail.com",
+  "pratik@gmail.com",
+];
+
+export function isAuthorizedEmail(emailStr: string): boolean {
+  if (!emailStr) return false;
+  const envEmails = import.meta.env.VITE_AUTHORIZED_EMAILS;
+  const authorized = (envEmails && typeof envEmails === "string")
+    ? envEmails.split(",").map((e: string) => e.trim().toLowerCase())
+    : DEFAULT_AUTHORIZED_EMAILS.map((e) => e.toLowerCase());
+
+  return authorized.includes(emailStr.trim().toLowerCase());
+}
+
 function getInitials(name: string) {
   return (
     name
@@ -70,7 +86,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function mapSupabaseUser(supabaseUser: any) {
-    const email = supabaseUser.email || "";
+    const email = (supabaseUser.email || "").toLowerCase();
+
+    // Enforcement: Reject any unauthorized email account
+    if (email && !isAuthorizedEmail(email)) {
+      console.warn(`Unauthorized login attempt blocked for: ${email}`);
+      await supabase.auth.signOut();
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+
     const metaName =
       supabaseUser.user_metadata?.full_name || email.split("@")[0];
 

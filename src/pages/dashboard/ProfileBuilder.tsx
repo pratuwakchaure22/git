@@ -156,8 +156,10 @@ function PersonalSection() {
 }
 
 function EducationSection() {
-  const { data, addEducation, deleteEducation } = useResumeData();
+  const { data, addEducation, updateEducation, deleteEducation } = useResumeData();
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [form, setForm] = useState<Omit<ResumeEducation, "id">>({
     institution: "",
     degree: "",
@@ -186,9 +188,7 @@ function EducationSection() {
     "Other",
   ];
 
-  async function handleAdd() {
-    if (!form.institution.trim()) return;
-    await addEducation(form);
+  function resetForm() {
     setForm({
       institution: "",
       degree: "",
@@ -205,6 +205,58 @@ function EducationSection() {
       relevant_subjects: "",
       description: "",
     });
+    setEditingId(null);
+    setErrorMsg(null);
+  }
+
+  function handleStartAdd() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function handleStartEdit(e: ResumeEducation) {
+    setErrorMsg(null);
+    setEditingId(e.id);
+    setForm({
+      institution: e.institution || "",
+      degree: e.degree || "",
+      field_of_study: e.field_of_study || "",
+      level: e.level || "Bachelor's",
+      board_university: e.board_university || "",
+      start_date: e.start_date || "",
+      end_date: e.end_date || "",
+      percentage: e.percentage || "",
+      cgpa_gpa: e.cgpa_gpa || "",
+      marks_obtained: e.marks_obtained || "",
+      max_marks: e.max_marks || "",
+      specialization: e.specialization || "",
+      relevant_subjects: e.relevant_subjects || "",
+      description: e.description || "",
+    });
+    setShowForm(true);
+  }
+
+  async function handleSave() {
+    if (!form.institution.trim()) {
+      setErrorMsg("Institution name is required.");
+      return;
+    }
+    setErrorMsg(null);
+
+    let err: any;
+    if (editingId) {
+      err = await updateEducation(editingId, form);
+    } else {
+      err = await addEducation(form);
+    }
+
+    if (err) {
+      const msg = typeof err === "object" && err.message ? err.message : String(err);
+      setErrorMsg(`Failed to save education entry: ${msg}`);
+      return;
+    }
+
+    resetForm();
     setShowForm(false);
   }
 
@@ -244,16 +296,50 @@ function EducationSection() {
                 <p className="mt-1 text-xs text-[#9A9AA8] line-clamp-2">{e.description}</p>
               )}
             </div>
-            <button type="button" className="rounded-lg p-1.5 text-[#FF5C6C] hover:bg-[#FF5C6C]/10" onClick={() => deleteEducation(e.id)}>
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                className="rounded-lg p-1.5 text-[#9A9AA8] hover:bg-[#4F7CFF]/10 hover:text-[#4F7CFF]"
+                onClick={() => handleStartEdit(e)}
+                title="Edit entry"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                className="rounded-lg p-1.5 text-[#FF5C6C] hover:bg-[#FF5C6C]/10"
+                onClick={async () => {
+                  if (window.confirm("Are you sure you want to delete this education entry?")) {
+                    setErrorMsg("");
+                    const err = await deleteEducation(e.id);
+                    if (err) {
+                      setErrorMsg(`Failed to delete education entry: ${err.message || "Unknown error"}`);
+                    } else if (editingId === e.id) {
+                      resetForm();
+                      setShowForm(false);
+                    }
+                  }
+                }}
+                title="Delete entry"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       ))}
 
       {showForm && (
         <div className="rounded-xl border border-[#4F7CFF]/40 bg-[#20202E] p-4 space-y-3 shadow-lg">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#4F7CFF]">New Education Entry</p>
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#4F7CFF]">
+            {editingId ? "Edit Education Entry" : "New Education Entry"}
+          </p>
+
+          {errorMsg && (
+            <div className="rounded-lg border border-[#FF5C6C]/30 bg-[#FF5C6C]/10 p-2 text-xs text-[#FF5C6C]">
+              {errorMsg}
+            </div>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -402,14 +488,18 @@ function EducationSection() {
           </div>
 
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={handleAdd} className="rounded-xl bg-[#4F7CFF] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#3b66e0]">Add Entry</button>
-            <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-4 py-1.5 text-xs text-[#9A9AA8]">Cancel</button>
+            <button type="button" onClick={handleSave} className="rounded-xl bg-[#4F7CFF] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#3b66e0]">
+              {editingId ? "Save Changes" : "Add Entry"}
+            </button>
+            <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="rounded-xl border border-[#2A2A3A] bg-[#1B1B28] px-4 py-1.5 text-xs text-[#9A9AA8]">
+              Cancel
+            </button>
           </div>
         </div>
       )}
 
       {!showForm && (
-        <button type="button" onClick={() => setShowForm(true)} className="flex w-full items-center gap-2 rounded-xl border border-dashed border-[#2A2A3A] bg-[#20202E] p-3 text-xs text-[#9A9AA8] hover:border-[#4F7CFF]/40 hover:text-[#F4F4F7]">
+        <button type="button" onClick={handleStartAdd} className="flex w-full items-center gap-2 rounded-xl border border-dashed border-[#2A2A3A] bg-[#20202E] p-3 text-xs text-[#9A9AA8] hover:border-[#4F7CFF]/40 hover:text-[#F4F4F7]">
           <Plus className="h-3.5 w-3.5 text-[#4F7CFF]" />Add education entry
         </button>
       )}

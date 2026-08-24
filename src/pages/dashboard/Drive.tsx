@@ -6,7 +6,6 @@ import { SearchBar } from "@/components/ui/SearchBar";
 import { Switch } from "@/components/ui/Switch";
 import type { DriveFileType } from "@/types";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabase";
 
 function DriveFileIcon({ type }: { type: DriveFileType }) {
   const cls = "h-5 w-5 flex-shrink-0";
@@ -22,7 +21,7 @@ function DriveFileIcon({ type }: { type: DriveFileType }) {
 }
 
 export default function Drive() {
-  const { user } = useAuth();
+  const { user, loginWithGoogle } = useAuth();
   const [connected, setConnected] = useState(() => Boolean(localStorage.getItem("gdrive_token")));
   const [aiAccess, setAiAccess] = useState(true);
   const [search, setSearch] = useState("");
@@ -30,19 +29,9 @@ export default function Drive() {
 
   async function handleConnectDrive() {
     try {
-      const redirectUrl = `${window.location.origin}/dashboard/drive`;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: redirectUrl,
-          scopes: "https://www.googleapis.com/auth/drive.readonly",
-        },
-      });
-      if (error) {
-        // Fallback for local session simulation
-        localStorage.setItem("gdrive_token", "connected");
-        setConnected(true);
-      }
+      await loginWithGoogle();
+      localStorage.setItem("gdrive_token", "connected");
+      setConnected(true);
     } catch {
       localStorage.setItem("gdrive_token", "connected");
       setConnected(true);

@@ -9,3 +9,6 @@ ALTER TABLE education ADD COLUMN IF NOT EXISTS marks_obtained TEXT;
 ALTER TABLE education ADD COLUMN IF NOT EXISTS percentage TEXT;
 ALTER TABLE education ADD COLUMN IF NOT EXISTS cgpa_gpa TEXT;
 ALTER TABLE education ADD COLUMN IF NOT EXISTS rank_distinction TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS specialization TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS relevant_subjects TEXT;
+ALTER TABLE education ADD COLUMN IF NOT EXISTS achievements TEXT;
