@@ -15,6 +15,7 @@ DECLARE
   allowed_emails text[] := ARRAY[
     'pratikwakchaure22@gmail.com',
     'wakchaurepratik22@gmail.com',
+    'pratik.wakchaure2008@gmail.com',
     'pratik@gmail.com'
   ];
 BEGIN
@@ -43,6 +44,7 @@ DECLARE
   allowed_emails text[] := ARRAY[
     'pratikwakchaure22@gmail.com',
     'wakchaurepratik22@gmail.com',
+    'pratik.wakchaure2008@gmail.com',
     'pratik@gmail.com'
   ];
 BEGIN

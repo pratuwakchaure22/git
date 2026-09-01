@@ -31,17 +31,23 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const DEFAULT_AUTHORIZED_EMAILS = [
   "pratikwakchaure22@gmail.com",
   "wakchaurepratik22@gmail.com",
+  "pratik.wakchaure2008@gmail.com",
   "pratik@gmail.com",
 ];
 
 export function isAuthorizedEmail(emailStr: string): boolean {
   if (!emailStr) return false;
   const envEmails = import.meta.env.VITE_AUTHORIZED_EMAILS;
-  const authorized = (envEmails && typeof envEmails === "string")
+  const authorizedEnv = (envEmails && typeof envEmails === "string")
     ? envEmails.split(",").map((e: string) => e.trim().toLowerCase())
-    : DEFAULT_AUTHORIZED_EMAILS.map((e) => e.toLowerCase());
+    : [];
 
-  return authorized.includes(emailStr.trim().toLowerCase());
+  const allAuthorized = [
+    ...DEFAULT_AUTHORIZED_EMAILS.map((e) => e.toLowerCase()),
+    ...authorizedEnv,
+  ];
+
+  return allAuthorized.includes(emailStr.trim().toLowerCase());
 }
 
 function getInitials(name: string) {
