@@ -60,99 +60,87 @@ export default function Home() {
         });
       }
 
-      // 2. Fetch Education
-      const { data: eduData } = await supabase
-        .from("education")
-        .select("*")
-        .order("start_date", { ascending: false });
+      // Resolve canonical owner ID for public portfolio view
+      const ownerId = pData?.id ?? user?.id ?? null;
 
-      if (eduData && eduData.length > 0) {
-        setEducationList(
-          eduData.map((e: any) => ({
-            id: e.id,
-            institution: e.institution,
-            degree: e.degree ? `${e.degree} ${e.field_of_study ? `in ${e.field_of_study}` : ""}` : "Degree",
-            start_date: e.start_date ? String(e.start_date).slice(0, 4) : "",
-            end_date: e.end_date ? String(e.end_date).slice(0, 4) : "Present",
-          }))
-        );
-      }
+      // 2. Fetch Education
+      const eduQuery = ownerId
+        ? supabase.from("education").select("*").eq("user_id", ownerId).order("start_date", { ascending: false })
+        : supabase.from("education").select("*").order("start_date", { ascending: false });
+      const { data: eduData } = await eduQuery;
+      setEducationList(
+        (eduData || []).map((e: any) => ({
+          id: e.id,
+          institution: e.institution,
+          degree: e.degree ? `${e.degree} ${e.field_of_study ? `in ${e.field_of_study}` : ""}` : "Degree",
+          start_date: e.start_date ? String(e.start_date).slice(0, 4) : "",
+          end_date: e.end_date ? String(e.end_date).slice(0, 4) : "Present",
+        }))
+      );
 
       // 3. Fetch Experience
-      const { data: expData } = await supabase
-        .from("experience")
-        .select("*")
-        .order("start_date", { ascending: false });
-
-      if (expData && expData.length > 0) {
-        setExperienceList(
-          expData.map((e: any) => ({
-            id: e.id,
-            company: e.company,
-            position: e.position,
-            start_date: e.start_date ? String(e.start_date).slice(0, 4) : "",
-            end_date: e.end_date ? String(e.end_date).slice(0, 4) : "Present",
-            description: e.description || "",
-          }))
-        );
-      }
+      const expQuery = ownerId
+        ? supabase.from("experience").select("*").eq("user_id", ownerId).order("start_date", { ascending: false })
+        : supabase.from("experience").select("*").order("start_date", { ascending: false });
+      const { data: expData } = await expQuery;
+      setExperienceList(
+        (expData || []).map((e: any) => ({
+          id: e.id,
+          company: e.company,
+          position: e.position,
+          start_date: e.start_date ? String(e.start_date).slice(0, 4) : "",
+          end_date: e.end_date ? String(e.end_date).slice(0, 4) : "Present",
+          description: e.description || "",
+        }))
+      );
 
       // 4. Fetch Skills
-      const { data: skData } = await supabase
-        .from("skills")
-        .select("*")
-        .order("category");
-
-      if (skData && skData.length > 0) {
-        setSkillList(
-          skData.map((s: any) => ({
-            id: s.id,
-            name: s.name,
-            category: s.category || "General",
-            proficiency: s.proficiency || 80,
-          }))
-        );
-      }
+      const skQuery = ownerId
+        ? supabase.from("skills").select("*").eq("user_id", ownerId).order("category")
+        : supabase.from("skills").select("*").order("category");
+      const { data: skData } = await skQuery;
+      setSkillList(
+        (skData || []).map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          category: s.category || "General",
+          proficiency: s.proficiency || 80,
+        }))
+      );
 
       // 5. Fetch Projects
-      const { data: prjData } = await supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (prjData && prjData.length > 0) {
-        setProjectList(
-          prjData.map((p: any) => ({
-            id: p.id,
-            title: p.title,
-            description: p.description || "",
-            technologies: p.technologies || [],
-            github_url: p.github_url || "",
-            live_url: p.live_url || "",
-            image_url: p.image_url || "",
-          }))
-        );
-      }
+      const prjQuery = ownerId
+        ? supabase.from("projects").select("*").eq("user_id", ownerId).order("created_at", { ascending: false })
+        : supabase.from("projects").select("*").order("created_at", { ascending: false });
+      const { data: prjData } = await prjQuery;
+      setProjectList(
+        (prjData || []).map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          description: p.description || "",
+          technologies: p.technologies || [],
+          github_url: p.github_url || "",
+          live_url: p.live_url || "",
+          image_url: p.image_url || "",
+        }))
+      );
 
       // 6. Fetch Achievements
-      const { data: achData } = await supabase
-        .from("achievements")
-        .select("*")
-        .order("date", { ascending: false });
-
-      if (achData && achData.length > 0) {
-        setAchievementList(
-          achData.map((a: any) => ({
-            id: a.id,
-            title: a.title,
-            date: a.date ? String(a.date).slice(0, 4) : "",
-            description: a.description || "",
-            organization: a.organization || "",
-            position: a.position || "",
-            image_url: a.image_url || "",
-          }))
-        );
-      }
+      const achQuery = ownerId
+        ? supabase.from("achievements").select("*").eq("user_id", ownerId).order("date", { ascending: false })
+        : supabase.from("achievements").select("*").order("date", { ascending: false });
+      const { data: achData } = await achQuery;
+      setAchievementList(
+        (achData || []).map((a: any) => ({
+          id: a.id,
+          title: a.title,
+          date: a.date ? String(a.date).slice(0, 4) : "",
+          description: a.description || "",
+          organization: a.organization || "",
+          position: a.position || "",
+          image_url: a.image_url || "",
+        }))
+      );
     }
 
     loadPortfolioData();
