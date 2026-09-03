@@ -118,14 +118,26 @@ export function useResumeData() {
       ? supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
       : supabase.from("profiles").select("*").order("created_at", { ascending: true }).limit(1).maybeSingle();
 
+    const userId = user?.id;
+
     const [profileRes, educationRes, experienceRes, skillsRes, projectsRes, achievementsRes] =
       await Promise.all([
         profilePromise,
-        supabase.from("education").select("*").order("start_date", { ascending: false }),
-        supabase.from("experience").select("*").order("start_date", { ascending: false }),
-        supabase.from("skills").select("*").order("category"),
-        supabase.from("projects").select("*").order("created_at", { ascending: false }),
-        supabase.from("achievements").select("*").order("date", { ascending: false }),
+        userId
+          ? supabase.from("education").select("*").eq("user_id", userId).order("start_date", { ascending: false })
+          : Promise.resolve({ data: [] }),
+        userId
+          ? supabase.from("experience").select("*").eq("user_id", userId).order("start_date", { ascending: false })
+          : Promise.resolve({ data: [] }),
+        userId
+          ? supabase.from("skills").select("*").eq("user_id", userId).order("category")
+          : Promise.resolve({ data: [] }),
+        userId
+          ? supabase.from("projects").select("*").eq("user_id", userId).order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] }),
+        userId
+          ? supabase.from("achievements").select("*").eq("user_id", userId).order("date", { ascending: false })
+          : Promise.resolve({ data: [] }),
       ]);
 
     const pData = profileRes.data;
@@ -435,7 +447,8 @@ export function useResumeData() {
   }
 
   async function updateExperience(id: string, item: Partial<ResumeExperience>) {
-    const { error } = await supabase.from("experience").update(item).eq("id", id);
+    if (!user) return new Error("User not logged in");
+    const { error } = await supabase.from("experience").update(item).eq("id", id).eq("user_id", user.id);
     if (!error) {
       await fetchAll();
     }
@@ -443,7 +456,8 @@ export function useResumeData() {
   }
 
   async function deleteExperience(id: string) {
-    const { error } = await supabase.from("experience").delete().eq("id", id);
+    if (!user) return new Error("User not logged in");
+    const { error } = await supabase.from("experience").delete().eq("id", id).eq("user_id", user.id);
     if (!error) {
       await fetchAll();
     }
@@ -462,7 +476,8 @@ export function useResumeData() {
   }
 
   async function updateSkill(id: string, item: Partial<ResumeSkill>) {
-    const { error } = await supabase.from("skills").update(item).eq("id", id);
+    if (!user) return new Error("User not logged in");
+    const { error } = await supabase.from("skills").update(item).eq("id", id).eq("user_id", user.id);
     if (!error) {
       await fetchAll();
     }
@@ -470,7 +485,8 @@ export function useResumeData() {
   }
 
   async function deleteSkill(id: string) {
-    const { error } = await supabase.from("skills").delete().eq("id", id);
+    if (!user) return new Error("User not logged in");
+    const { error } = await supabase.from("skills").delete().eq("id", id).eq("user_id", user.id);
     if (!error) {
       await fetchAll();
     }
@@ -489,7 +505,8 @@ export function useResumeData() {
   }
 
   async function updateProject(id: string, item: Partial<ResumeProject>) {
-    const { error } = await supabase.from("projects").update(item).eq("id", id);
+    if (!user) return new Error("User not logged in");
+    const { error } = await supabase.from("projects").update(item).eq("id", id).eq("user_id", user.id);
     if (!error) {
       await fetchAll();
     }
@@ -497,7 +514,8 @@ export function useResumeData() {
   }
 
   async function deleteProject(id: string) {
-    const { error } = await supabase.from("projects").delete().eq("id", id);
+    if (!user) return new Error("User not logged in");
+    const { error } = await supabase.from("projects").delete().eq("id", id).eq("user_id", user.id);
     if (!error) {
       await fetchAll();
     }
@@ -516,7 +534,8 @@ export function useResumeData() {
   }
 
   async function updateAchievement(id: string, item: Partial<ResumeAchievement>) {
-    const { error } = await supabase.from("achievements").update(item).eq("id", id);
+    if (!user) return new Error("User not logged in");
+    const { error } = await supabase.from("achievements").update(item).eq("id", id).eq("user_id", user.id);
     if (!error) {
       await fetchAll();
     }
@@ -524,7 +543,8 @@ export function useResumeData() {
   }
 
   async function deleteAchievement(id: string) {
-    const { error } = await supabase.from("achievements").delete().eq("id", id);
+    if (!user) return new Error("User not logged in");
+    const { error } = await supabase.from("achievements").delete().eq("id", id).eq("user_id", user.id);
     if (!error) {
       await fetchAll();
     }
