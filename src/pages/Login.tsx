@@ -20,16 +20,17 @@ export default function Login() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!form.email || !form.password) {
+    const normalizedEmail = form.email.trim().toLowerCase();
+    if (!normalizedEmail || !form.password) {
       setError("Please enter your email and password.");
       return;
     }
-    if (!isAuthorizedEmail(form.email)) {
-      setError(`Access Denied: Email (${form.email}) is not authorized to access this workspace.`);
+    if (!isAuthorizedEmail(normalizedEmail)) {
+      setError(`Access Denied: Email (${normalizedEmail}) is not authorized to access this workspace.`);
       return;
     }
     try {
-      await login(form.email, form.password);
+      await login(normalizedEmail, form.password);
 
       // Check if MFA challenge is required (AAL2)
       const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
